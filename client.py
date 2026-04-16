@@ -2,7 +2,7 @@ import socks
 import subprocess
 import time
 
-ONION = "oabtt5q4uqwsienlw55r7rcdveeudjdixpm4fsq6zlzz262gvtxqnfyd.onion"
+ONION = "5p7php7kszebdfgghrxkp6ivcpqdmvhhc7lpvb2c7v72vcwh6yy5umyd.onion"
 PORT = 1234
 
 tor = subprocess.Popen(
