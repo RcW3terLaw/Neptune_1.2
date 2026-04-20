@@ -1,2 +1,5 @@
 SocksPort 9050
 ExitNodes {FR}
+
+GeoIPFile TorClient\geoip
+GeoIPv6File TorClient\geoip6
